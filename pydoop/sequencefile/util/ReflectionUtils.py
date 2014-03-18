@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ========================================================================
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -15,6 +15,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# 2014-03-17 (bukovsky) module rename
 
 from pydoop.sequencefile.io import *
 
@@ -34,6 +36,9 @@ def hadoopClassName(class_type):
     if module_name.startswith('hadoop.io.'):
         module_name, _, file_name = module_name.rpartition('.')
         return 'org.apache.%s.%s' % (module_name, class_name)
+    if module_name.startswith('hadoop.mapred.'):
+        module_name, _, file_name = module_name.rpartition('.')
+        return 'org.apache.%s.%s' % (module_name, class_name)
     return '%s.%s' % (module_name, class_name)
 
 def classFromName(class_path):
@@ -41,7 +46,6 @@ def classFromName(class_path):
     if not module_name:
         raise ValueError('Class name must contain module part.')
     module_name = module_name.replace("hadoop", "pydoop.sequencefile")
-
     module = __import__(module_name, globals(), locals(), [str(class_name)], -1)
     return getattr(module, class_name)
 

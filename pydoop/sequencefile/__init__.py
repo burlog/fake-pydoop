@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ========================================================================
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -16,6 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
-import util
+from pydoop.sequencefile import io
+from pydoop.sequencefile import util
 

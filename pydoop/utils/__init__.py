@@ -16,5 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pydoop.sequencefile.io.compress.CodecPool import *
+def jc_configure(obj, jc, k, f, df = None):
+    pass
 
+def jc_configure_int(obj, jc, k, f, df = None):
+    pass

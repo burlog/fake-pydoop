@@ -1,22 +1,65 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
+# ========================================================================
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from hadut import MContext
-from hadut import RContext
-from hadut import PipesRunner
-from sequencefile.io.SequenceFile import Reader
+import os
+from pydoop.sequencefile.util.ReflectionUtils import hadoopClassFromName
 
+class RecordReader(object):
+    def __init__(self, ctx):
+        super(RecordReader, self).__init__()
+
+class RecordWriter(object):
+    def __init__(self, ctx):
+        super(RecordWriter, self).__init__()
+
+class Partitioner(object):
+    def __init__(self, ctx):
+        super(Partitioner, self).__init__()
 
 class Mapper(object):
     def __init__(self, ctx):
         super(Mapper, self).__init__()
 
+    def close(self):
+        raise NotImplementedError()
+
+    def map(self, ctx):
+        raise NotImplementedError()
+
 class Reducer(object):
     def __init__(self, ctx):
         super(Reducer, self).__init__()
 
+    def close(self):
+        raise NotImplementedError()
+
+    def reduce(self, ctx):
+        raise NotImplementedError()
+
 class Combiner(object):
     def __init__(self, ctx):
         super(Combiner, self).__init__()
+
+    def close(self):
+        raise NotImplementedError()
+
+    def reduce(self, ctx):
+        raise NotImplementedError()
 
 class TaskContext(object):
     def __init__(self, result = None):
@@ -25,6 +68,27 @@ class TaskContext(object):
 
     def emit(self, ekey, evalue):
         self.result.emit(ekey, evalue)
+
+    def getJobConf(self):
+        return JobConf()
+
+    def getInputKey(self):
+        raise NotImplementedError()
+
+    def getInputValue(self):
+        raise NotImplementedError()
+
+    def progress(self):
+        raise NotImplementedError()
+
+    def setStatus(self, status):
+        pass
+
+    def getCounter(self, group, name):
+        return Counter()
+
+    def incrementCounter(self, counter, amount):
+        pass
 
 class MapContext(TaskContext):
     def __init__(self, entry = None, result = None):
@@ -37,6 +101,15 @@ class MapContext(TaskContext):
 
     def getInputValue(self):
         return self.value.getBytes()
+
+    def getInputSplit(self):
+        raise NotImplementedError()
+
+    def getInputKeyClass(self):
+        raise NotImplementedError()
+
+    def getInputValueClass(self):
+        raise NotImplementedError()
 
 class ReduceContext(TaskContext):
     def __init__(self, entry = None, result = None):
@@ -53,7 +126,31 @@ class ReduceContext(TaskContext):
     def nextValue(self):
         return self.value.nextValue()
 
-#===============================
+class JobConf(object):
+    def __init__(self):
+        super(JobConf, self).__init__()
+
+    def hasKey(self, key):
+        raise NotImplementedError()
+
+    def get(self, key):
+        raise NotImplementedError()
+
+    def getInt(self, key):
+        raise NotImplementedError()
+
+    def getFloat(self, key):
+        raise NotImplementedError()
+
+    def getBoolean(self, key):
+        raise NotImplementedError()
+
+class Counter(object):
+    def __init__(self):
+        super(Counter, self).__init__()
+
+    def getId(self):
+        raise NotImplementedError()
 
 class CopyReducer(Reducer):
     def __init__(self, ctx):
@@ -66,16 +163,21 @@ class CopyReducer(Reducer):
 class InputReader(object):
     def __init__(self, filename):
         super(InputReader, self).__init__()
-        self.reader = Reader(filename)
+        self.reader_class_name = "org.apache.hadoop.mapred.TextInputFormat"
+        if "mapred.input.format.class" in os.environ:
+            self.reader_class_name = os.environ["mapred.input.format.class"]
+        self.reader_class = hadoopClassFromName(self.reader_class_name)
+        self.reader = self.reader_class(filename)
         self.key = self.reader.getKeyClass()()
         self.value = self.reader.getValueClass()()
 
     def pos(self):
         return self.reader.getPosition()
 
-    def __iter__(self):
-        while self.reader.next(self.key, self.value):
-            yield str(self.key), self.value
+    def next(self):
+        if self.reader.next(self.key, self.value):
+            return str(self.key), self.value
+        return None
 
 class ResultValue(object):
     def __init__(self, value = None):
@@ -130,24 +232,38 @@ class MapRunner(object):
     def __init__(self, count, mapper_class):
         super(MapRunner, self).__init__()
         self.map_tasks = []
-        for i in range(0, count):
-            self.map_tasks.append([mapper_class(MapContext()), ResultStore()])
+        if count == 0:
+            result = ResultStore()
+            for i in range(0, 3):
+                mapper = mapper_class(MapContext())
+                self.map_tasks.append([mapper, result])
+        else:
+            for i in range(0, count):
+                mapper = mapper_class(MapContext())
+                result = ResultStore()
+                self.map_tasks.append([mapper, result])
 
     def __iter__(self):
         for map_task, result_collector in self.map_tasks:
             yield map_task, result_collector
 
 class Factory(object):
-    def __init__(self, mapper_class, reducer_class, combiner_class = None):
+    def __init__(self,
+                 mapper_class,
+                 reducer_class,
+                 record_reader_class = None,
+                 record_writer_class = None,
+                 combiner_class = None,
+                 partitioner_class = None):
         super(Factory, self).__init__()
-        self.tasks = 3
-        self.input_filename = PipesRunner.CONTEXT["fake.pydoop.input.file"]
+        self.tasks = int(os.environ.get("mapred.reduce.tasks", 3))
+        self.input_filename = os.environ.get("fake.pydoop.input.file", "")
         self.mapper_class = mapper_class
         self.reducer_class = reducer_class
         self.combiner_class = combiner_class
         if not self.combiner_class: self.combiner_class = CopyReducer
 
-    def open_sqf(self):
+    def open_reader(self):
         return InputReader(self.input_filename)
 
     def make_map_tasks(self):
@@ -160,30 +276,42 @@ class Factory(object):
         return self.reducer_class(ReduceContext())
 
 def runTask(factory):
-    sqf = factory.open_sqf()
+    file_reader = factory.open_reader()
     map_tasks = factory.make_map_tasks()
 
     # map phase
-    try:
-        i = 0
-        ientry = sqf.__iter__()
-        while True:
-            for map_task, map_result in map_tasks:
-                entry = ientry.next()
-                print("Mapping key: %s [at=%s]" % (entry[0], sqf.pos()))
-                map_task.map(map_result.create_map_context(entry))
-                i += 1
-                if i > 3000: raise StopIteration()
-    except StopIteration: pass
+    i = 0
+    stop = False
+    limit = int(os.environ.get("fake.pydoop.input.records.limit", -1))
+    while not stop:
+        for map_task, map_result in map_tasks:
+            entry = file_reader.next()
+            if not entry:
+                stop = True
+                break
+            print("Mapping key: %s [#=%s, at=%s]"
+                  % (entry[0], i, file_reader.pos()))
+            map_task.map(map_result.create_map_context(entry))
+            i += 1
+            if limit != -1 and i > limit:
+                stop = True
+                break
+
+    # print map result if there are no reduce tasks
+    if factory.tasks == 0:
+        _, map_result = map_tasks.__iter__().next()
+        for key in sorted(map_result.store.keys()):
+            print("%s: %s" % (key, map_result.store[key].store))
+        return
 
     # combiner phase
     combiners_result = ResultStore()
     for _, map_result in map_tasks:
         combine_task = factory.make_combine_task()
         for entry in map_result:
-            print("Combine key: %s [values=%s]" % (entry[0], len(entry[1])))
+            if factory.combiner_class != CopyReducer:
+                print("Combine key: %s [values=%s]" % (entry[0], len(entry[1])))
             combine_task.reduce(combiners_result.create_combine_context(entry))
-            #print(map_result.store)
 
     # last reduce phase
     reduce_result = ResultStore()
@@ -192,7 +320,7 @@ def runTask(factory):
         print("Reduce key: %s [values=%s]" % (entry[0], len(entry[1])))
         reduce_task.reduce(reduce_result.create_reduce_context(entry))
 
-    # print output out
+    # print output on the screen
     for key in sorted(reduce_result.store.keys()):
         print("%s: %s" % (key, reduce_result.store[key].store))
 

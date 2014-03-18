@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ========================================================================
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -50,6 +50,10 @@ class Text(WritableComparable):
     def readFields(self, data_input):
         self._length = readVInt(data_input)
         self._bytes = data_input.read(self._length)
+
+    def setFields(self, xbytes, length = None):
+        self._bytes = xbytes
+        self._length = length if length is not None else len(xbytes)
 
     def equal(self, other):
         if not isinstance(other, Text):

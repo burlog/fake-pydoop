@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ========================================================================
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -18,9 +18,9 @@
 
 from pydoop.sequencefile.util import ReflectionUtils
 
-from BZip2Codec import *
-from ZlibCodec import *
-from GzipCodec import *
+from pydoop.sequencefile.io.compress.BZip2Codec import *
+from pydoop.sequencefile.io.compress.ZlibCodec import *
+from pydoop.sequencefile.io.compress.GzipCodec import *
 
 class CodecPool(object):
     def __new__(cls, *p, **k):

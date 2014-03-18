@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ========================================================================
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# 2014-03-17 (burlog) module rename; minor fixes
+
 from hashlib import md5
 from uuid import uuid1
 from time import time
@@ -23,13 +25,13 @@ import os
 
 from pydoop.sequencefile.util.ReflectionUtils import hadoopClassFromName, hadoopClassName
 
-from compress import CodecPool
+from pydoop.sequencefile.io.compress import CodecPool
 
-from WritableUtils import readVInt, writeVInt
-from Writable import Writable
-from OutputStream import FileOutputStream, DataOutputStream, DataOutputBuffer
-from InputStream import FileInputStream, DataInputStream, DataInputBuffer
-from VersionMismatchException import VersionMismatchException, VersionPrefixException
+from pydoop.sequencefile.io.WritableUtils import readVInt, writeVInt
+from pydoop.sequencefile.io.Writable import Writable
+from pydoop.sequencefile.io.OutputStream import FileOutputStream, DataOutputStream, DataOutputBuffer
+from pydoop.sequencefile.io.InputStream import FileInputStream, DataInputStream, DataInputBuffer
+from pydoop.sequencefile.io.VersionMismatchException import VersionMismatchException, VersionPrefixException
 
 from Text import Text
 

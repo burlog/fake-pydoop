@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # ========================================================================
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -16,18 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import OutputStream
-import InputStream
+from pydoop.sequencefile.io import OutputStream
+from pydoop.sequencefile.io import InputStream
 
-import SequenceFile
-import ArrayFile
-import MapFile
-import SetFile
+from pydoop.sequencefile.io import SequenceFile
 
-from Writable import *
-from IntWritable import *
-from Text import *
-from Bytes import *
-import WritableUtils
+from pydoop.sequencefile.io.Writable import *
+from pydoop.sequencefile.io.Text import *
+from pydoop.sequencefile.io.Bytes import *
+from pydoop.sequencefile.io import WritableUtils
 
-import compress
+from pydoop.sequencefile.io import compress
