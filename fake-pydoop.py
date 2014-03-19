@@ -25,7 +25,10 @@ def is_exe(filename):
 def print_usage(out, msg = None):
     if msg: out.write(msg + "\n")
     out.write("Usage: fake-pydoop.py [fake-pydoop-options] "
-              "/path/to/mr/job.py  [mr-job-options]\n")
+              "/path/to/mr/job.py  [mr-job-options]\n\n")
+    out.write("fake-pydoop-options:\n"
+              " --fp-input-records-limit=LIMIT\t"
+                  "how many records is read from input file\n")
 
 def parse_args(argv):
     if len(argv) == 0: return argv
