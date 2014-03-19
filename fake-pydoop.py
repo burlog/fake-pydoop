@@ -53,8 +53,11 @@ def main():
     filename, argv = parse_args(sys.argv[1:])
     PYTHONPATH = os.environ.get("PYTHONPATH", "")
     os.environ["PYTHONPATH"] = PYTHONPATH                                      \
-                             + os.path.dirname(filename)                       \
+                            + ":" + os.path.dirname(filename)                  \
                              + ":" + os.path.dirname(sys.argv[0])
+
+    print("Seting PYTHONPATH: %s" % os.environ["PYTHONPATH"])
+    print("Running: %s %s" % (filename, " ".join(argv)))
     if is_exe(filename):
         os.execv(filename, [filename] + argv)
     os.execv("/usr/bin/env", ["/usr/bin/env"] + ["python2"] + [filename] + argv)
