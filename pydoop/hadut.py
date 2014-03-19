@@ -21,6 +21,7 @@ import os
 class PipesRunner:
     def __init__(self, prefix = None):
         self.filename = None
+        self.output = "/dev/null" # FIXME
 
     def set_input(self, filename, put = None):
         self.filename = filename

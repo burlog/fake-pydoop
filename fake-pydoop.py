@@ -52,9 +52,9 @@ def parse_args(argv):
 def main():
     filename, argv = parse_args(sys.argv[1:])
     PYTHONPATH = os.environ.get("PYTHONPATH", "")
-    os.environ["PYTHONPATH"] = os.path.dirname(filename)                       \
-                             + ":" + os.path.dirname(sys.argv[0])              \
-                             + ":" + PYTHONPATH
+    os.environ["PYTHONPATH"] = PYTHONPATH                                      \
+                             + os.path.dirname(filename)                       \
+                             + ":" + os.path.dirname(sys.argv[0])
     if is_exe(filename):
         os.execv(filename, [filename] + argv)
     os.execv("/usr/bin/env", ["/usr/bin/env"] + ["python2"] + [filename] + argv)
