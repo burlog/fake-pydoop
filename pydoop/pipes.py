@@ -67,6 +67,10 @@ class TaskContext(object):
         self.result = result
 
     def emit(self, ekey, evalue):
+        if type("") != type(ekey):
+            raise AttributeError("emited key is not str")
+        if type("") != type(evalue):
+            raise AttributeError("emited value is not str")
         self.result.emit(ekey, evalue)
 
     def getJobConf(self):
