@@ -135,19 +135,19 @@ class JobConf(object):
         super(JobConf, self).__init__()
 
     def hasKey(self, key):
-        raise NotImplementedError()
+        return key in os.environ
 
     def get(self, key):
-        raise NotImplementedError()
+        return str(os.environ.get(key))
 
     def getInt(self, key):
-        raise NotImplementedError()
+        return int(os.environ.get(key))
 
     def getFloat(self, key):
-        raise NotImplementedError()
+        return float(os.environ.get(key))
 
     def getBoolean(self, key):
-        raise NotImplementedError()
+        return bool(os.environ.get(key))
 
 class Counter(object):
     def __init__(self):
