@@ -510,7 +510,10 @@ class Reader(object):
         return length
 
     def _getCurrentValue(self, value):
-        stream = self.nextRawValue()
-        value.readFields(stream)
-        if not self._block_compressed:
-            assert self._record.size() == 0
+        try:
+            stream = self.nextRawValue()
+            value.readFields(stream)
+            if not self._block_compressed:
+                assert self._record.size() == 0
+        except:
+            pass 

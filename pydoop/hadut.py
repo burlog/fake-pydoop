@@ -19,7 +19,7 @@
 import os
 
 class PipesRunner:
-    def __init__(self, prefix = None):
+    def __init__(self, prefix = None, logger = None):
         self.filename = None
         self.output = "/dev/null" # FIXME
 
