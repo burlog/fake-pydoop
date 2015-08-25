@@ -262,6 +262,7 @@ class Factory(object):
         super(Factory, self).__init__()
         self.tasks = int(os.environ.get("mapred.reduce.tasks", 3))
         self.input_filename = os.environ.get("fake.pydoop.input.file", "")
+        self.output_filename = os.environ.get("fake.pydoop.output.file", "")
         self.mapper_class = mapper_class
         self.reducer_class = reducer_class
         self.combiner_class = combiner_class
@@ -282,6 +283,7 @@ class Factory(object):
 def runTask(factory):
     file_reader = factory.open_reader()
     map_tasks = factory.make_map_tasks()
+    print "Output file is:", factory.output_filename
 
     # map phase
     i = 0
@@ -325,6 +327,10 @@ def runTask(factory):
         reduce_task.reduce(reduce_result.create_reduce_context(entry))
 
     # print output on the screen
+    f = open(factory.output_filename,'w')
     for key in sorted(reduce_result.store.keys()):
-        print("%s: %s" % (key, reduce_result.store[key].store))
+        for s in reduce_result.store[key].store:
+            print("%s\t%s" % (key,s))
+            f.write("%s\t%s\n" % (key,s))
+    f.close()
 

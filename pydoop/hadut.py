@@ -21,14 +21,15 @@ import os
 class PipesRunner:
     def __init__(self, prefix = None, logger = None):
         self.filename = None
-        self.output = "/dev/null" # FIXME
+        os.environ["fake.pydoop.output.file"] = "/dev/null"
 
     def set_input(self, filename, put = None):
         self.filename = filename
         os.environ["fake.pydoop.input.file"] = self.filename
 
     def set_output(self, output):
-        raise NotImplementedError()
+        self.output = output 
+        os.environ["fake.pydoop.output.file"] = output
 
     def clean(self):
         pass
